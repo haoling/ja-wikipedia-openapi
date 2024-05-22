@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.NoBrowser": true,
+		"liveServer.settings.root": "/dist"
+	}
+}
