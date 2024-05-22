@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
     "dev-serv": "ts-node-dev --watch src src/index.ts"
   },
   "dependencies": {
