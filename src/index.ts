@@ -4,6 +4,10 @@ const server = fastify({
     logger: true
 })
 
+server.get('/', async () => {
+    return { hello: 'world' }
+});
+
 server.register(require("@fastify/swagger"))
 server.register(require("@fastify/swagger-ui"), {
   routePrefix: "/doc",
@@ -15,6 +19,7 @@ server.register(WikipediaContentFetcherRoutes, { prefix: 'wikipedia'});
 
 server.listen(
     {
+        host: '0.0.0.0',
         port: 3000,
     },
     (err, address) => {
