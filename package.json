@@ -9,10 +9,13 @@
     "dev-serv": "ts-node-dev --watch src src/index.ts"
   },
   "dependencies": {
+    "@fastify/swagger": "^8.14.0",
+    "@fastify/swagger-ui": "^3.0.0",
     "axios": "^1.7.2",
     "fastify": "^4.27.0"
   },
   "devDependencies": {
+    "@sinclair/typebox": "^0.32.30",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^20.12.12",
     "ts-node-dev": "^2.0.0",

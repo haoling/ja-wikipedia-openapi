@@ -1,7 +1,8 @@
 import axios from "axios";
-import { RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerDefault, RequestGenericInterface, RouteHandlerMethod } from "fastify";
+import { FastifyInstance, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerDefault, RouteHandlerMethod } from "fastify";
+import { Static, Type } from "@sinclair/typebox"
 
-export const fetchWikipediaContent = async (pageTitle: string) => {
+const fetchWikipediaContent = async (pageTitle: string) => {
     const url = 'https://ja.wikipedia.org/w/api.php';
     const params = {
         origin: '*',
@@ -22,19 +23,43 @@ export const fetchWikipediaContent = async (pageTitle: string) => {
     return response.data.parse.text['*'];
 };
 
-export const fetchWikipediaContentHandler: RouteHandlerMethod<
+const PageRequest = Type.Object({
+    pageTitle: Type.String()
+});
+type PageRequestType = Static<typeof PageRequest>
+
+const PageResponse = Type.Object({
+    content: Type.String()
+});
+type PageResponseType = Static<typeof PageResponse>
+
+const PageHandlerSchema = {
+    schema: {
+        body: PageRequest,
+        response: {
+          200: PageResponse,
+        },
+      },
+}
+
+type PageHandlerType = {
+    Body: PageRequestType;
+    Reply: PageResponseType;
+}
+
+const fetchWikipediaContentHandler: RouteHandlerMethod<
     RawServerDefault,
     RawRequestDefaultExpression,
     RawReplyDefaultExpression,
-    {
-        Body: {
-            pageTitle: string;
-        }
-    }
+    PageHandlerType
 > = async (request, reply) => {
     reply.type('application/json').code(200);
 
     const content = await fetchWikipediaContent(request.body.pageTitle);
 
     return {content};
+}
+
+export const WikipediaContentFetcherRoutes = async (server: FastifyInstance) => {
+    server.post<PageHandlerType>('/page', PageHandlerSchema, fetchWikipediaContentHandler);
 }

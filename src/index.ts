@@ -1,10 +1,17 @@
 import fastify from 'fastify'
-import { fetchWikipediaContentHandler } from './WikipediaContentFetcher';
+import { WikipediaContentFetcherRoutes } from './WikipediaContentFetcher';
 const server = fastify({
     logger: true
 })
 
-server.post('/', fetchWikipediaContentHandler);
+server.register(require("@fastify/swagger"))
+server.register(require("@fastify/swagger-ui"), {
+  routePrefix: "/doc",
+  staticCSP: true,
+  transformSpecificationClone: true,
+})
+
+server.register(WikipediaContentFetcherRoutes, { prefix: 'wikipedia'});
 
 server.listen(
     {
