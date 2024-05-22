@@ -1,5 +1,8 @@
 import fastify from 'fastify'
 import { WikipediaContentFetcherRoutes } from './WikipediaContentFetcher';
+
+const serverUri = process.env.SERVER_URI || "http://localhost:3000";
+
 const server = fastify({
     logger: true
 })
@@ -8,14 +11,33 @@ server.get('/', async () => {
     return { hello: 'world' }
 });
 
-server.register(require("@fastify/swagger"))
+server.register(require("@fastify/swagger"), {
+    openapi: {
+        openapi: '3.0.0',
+        info: {
+            title: "ja-wikipedia",
+            description: "Fetch page content from ja.wikipedia.org",
+            version: "0.1.1",
+        },
+        servers: [
+            {
+                url: serverUri,
+            },
+        ],
+    },
+})
 server.register(require("@fastify/swagger-ui"), {
-  routePrefix: "/doc",
-  staticCSP: true,
-  transformSpecificationClone: true,
+    routePrefix: "/doc",
+    uiConfig: {
+        docExpansion: "full",
+        deepLinking: false,
+    },
+    staticCSP: true,
+    transformStaticCSP: (header: any) => header,
+    exposeRoute: true,
 })
 
-server.register(WikipediaContentFetcherRoutes, { prefix: 'wikipedia'});
+server.register(WikipediaContentFetcherRoutes, { prefix: 'wikipedia' });
 
 server.listen(
     {
