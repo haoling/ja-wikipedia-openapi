@@ -4,6 +4,9 @@
   "main": "index.js",
   "author": "Haoling <noreply-haoling@fei-yen.jp>",
   "license": "MIT",
+  "scripts": {
+    "dev-serv": "node src/index.js"
+  },
   "dependencies": {
     "fastify": "^4.27.0"
   }
