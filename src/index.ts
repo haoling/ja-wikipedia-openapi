@@ -1,12 +1,10 @@
 import fastify from 'fastify'
+import { fetchWikipediaContentHandler } from './WikipediaContentFetcher';
 const server = fastify({
     logger: true
 })
 
-server.get('/', async (request, reply) => {
-    reply.type('application/json').code(200)
-    return {hello: 'world'}
-})
+server.post('/', fetchWikipediaContentHandler);
 
 server.listen(
     {
