@@ -5,9 +5,15 @@
   "author": "Haoling <noreply-haoling@fei-yen.jp>",
   "license": "MIT",
   "scripts": {
-    "dev-serv": "node src/index.js"
+    "build": "tsc -p tsconfig.json",
+    "dev-serv": "node dist/index.js"
   },
   "dependencies": {
     "fastify": "^4.27.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
+    "@types/node": "^20.12.12",
+    "typescript": "^5.4.5"
   }
 }
