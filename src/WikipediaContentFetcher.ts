@@ -1,6 +1,8 @@
 import axios from "axios";
-import { FastifyInstance, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerDefault, RouteHandlerMethod, RouteShorthandOptions } from "fastify";
+import { FastifyInstance, FastifySchema, RawReplyDefaultExpression, RawRequestDefaultExpression, RawServerDefault, RouteHandlerMethod, RouteShorthandOptions } from "fastify";
 import { Static, Type } from "@sinclair/typebox"
+import TurndownService from "turndown";
+import cheerio from 'cheerio';
 
 type ResponseType = {
     code: string,
@@ -32,35 +34,66 @@ const fetchWikipediaContent: (pageTitle: string) => Promise<ResponseType> = asyn
         console.error('Error C:', response.data.error.code, response.data.error.info, response.data.error['*'])
         throw response.data.error as ResponseType;
     }
-    return {code: 'success', info: '', '*': response.data.parse.text['*']};
+    return { code: 'success', info: '', '*': response.data.parse.text['*'] };
 };
 
+// HTMLからstyleタグを削除する関数
+const removeStyleTags: (html: string) => string = (html) => {
+    const $ = cheerio.load(html);
+    $('style').remove(); // styleタグを削除
+    return $.html();
+}
+
+// HTMLをMarkdownに変換する関数
+const convertHTMLToMarkdown: (html: string) => string = (html) => {
+    const turndownService = new TurndownService();
+    const htmlWithoutStyle = removeStyleTags(html);
+    const markdown = turndownService.turndown(htmlWithoutStyle);
+    return markdown;
+}
+
 const PageRequest = Type.Object({
-    pageTitle: Type.String()
+    pageTitle: Type.String(),
+    responseType: Type.String({ enum: ['html', 'markdown'], default: 'html' })
 });
 type PageRequestType = Static<typeof PageRequest>
 
-const PageSuccessResponse = Type.Object({
-    content: Type.String()
-});
-type PageSuccessResponseType = Static<typeof PageSuccessResponse>
+const PageSuccessResponse = Type.String();
 
 const PageErrorResponse = Type.Object({
     code: Type.String(),
     info: Type.String(),
     "*": Type.String()
 });
-type PageErrorResponseType = Static<typeof PageErrorResponse>
 
-const PageHandlerSchema = {
-    schema: {
-        description: 'Fetch page content from ja.wikipedia.org',
-        operationId: 'fetchWikipediaContent',
-        body: PageRequest,
-        response: {
-            200: PageSuccessResponse,
-            404: PageErrorResponse,
-            500: PageErrorResponse,
+const PageHandlerSchema: FastifySchema = {
+    description: 'Fetch page content from ja.wikipedia.org',
+    operationId: 'fetchWikipediaContent',
+    body: PageRequest,
+    response: {
+        200: {
+            description: 'Successful response',
+            content: {
+                'text/plain': {
+                    schema: PageSuccessResponse,
+                },
+            },
+        },
+        404: {
+            description: 'Page not found',
+            content: {
+                'application/json': {
+                    schema: PageErrorResponse,
+                },
+            },
+        },
+        500: {
+            description: 'Internal server error',
+            content: {
+                'application/json': {
+                    schema: PageErrorResponse,
+                },
+            },
         },
     },
 }
@@ -84,9 +117,14 @@ const fetchWikipediaContentHandler: RouteHandlerMethod<
         return;
     }
 
-    return {content: content["*"]};
+    if (request.body.responseType == "markdown") {
+        reply.send(convertHTMLToMarkdown(content["*"]));
+        return;
+    }
+
+    reply.send(content["*"]);
 }
 
 export const WikipediaContentFetcherRoutes = async (server: FastifyInstance) => {
-    server.post<PageHandlerType>('/page', PageHandlerSchema, fetchWikipediaContentHandler);
+    server.post<PageHandlerType>('/page', { schema: PageHandlerSchema }, fetchWikipediaContentHandler);
 }
