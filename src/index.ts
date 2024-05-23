@@ -1,7 +1,8 @@
 import fastify from 'fastify'
-import { WikipediaContentFetcherRoutes } from './WikipediaContentFetcher';
 import fastifySwagger from '@fastify/swagger';
 import { OpenAPIV3 } from 'openapi-types';
+import { fetchWikipediaContentHandlerRoutes } from './fetchWikipediaContent';
+import { searchWikipediaPagesHandlerRoutes } from './searchWikipediaPages';
 
 const serverUri = process.env.SERVER_URI || "http://localhost:3000";
 
@@ -41,7 +42,8 @@ server.register(require("@fastify/swagger-ui"), {
     exposeRoute: true,
 })
 
-server.register(WikipediaContentFetcherRoutes, { prefix: 'wikipedia' });
+server.register(fetchWikipediaContentHandlerRoutes, { prefix: 'wikipedia' });
+server.register(searchWikipediaPagesHandlerRoutes, { prefix: 'wikipedia' });
 
 server.put('/some-route/:id', {
     schema: {
